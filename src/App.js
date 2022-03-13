@@ -131,7 +131,10 @@ function App() {
             aria-label='center back'
             icon={<FaLocationArrow />}
             isRound
-            onClick={() => map.panTo(center)}
+            onClick={() => {
+              map.panTo(center)
+              map.setZoom(15)
+            }}
           />
         </HStack>
       </Box>
