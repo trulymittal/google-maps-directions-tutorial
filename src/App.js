@@ -16,7 +16,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react'
-import { FaLocationArrow } from 'react-icons/fa'
+import { FaLocationArrow, FaTimes } from 'react-icons/fa'
 
 function App() {
   return (
@@ -32,12 +32,12 @@ function App() {
     >
       <Box position='absolute' left={0} top={0} h='100%' w='100%'></Box>
       <Box
-        minW='sm'
         p={4}
         borderRadius='lg'
         m={4}
         bgColor='white'
         shadow='base'
+        minW='container.md'
       >
         <HStack spacing={4}>
           <Input type='text' placeholder='Origin' />
@@ -46,7 +46,11 @@ function App() {
             <Button colorScheme='pink' type='submit'>
               Calculate Route
             </Button>
-            <Button>Clear</Button>
+            <IconButton
+              aria-label='center back'
+              icon={<FaTimes />}
+              onClick={() => alert(123)}
+            />
           </ButtonGroup>
         </HStack>
         <HStack spacing={4} mt={4} justifyContent='space-between'>
