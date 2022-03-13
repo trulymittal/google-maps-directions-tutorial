@@ -2,19 +2,11 @@ import {
   Box,
   Button,
   ButtonGroup,
-  chakra,
   Flex,
   HStack,
   IconButton,
   Input,
-  Stat,
-  StatArrow,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
-  StatUpArrow,
   Text,
-  VStack,
 } from '@chakra-ui/react'
 import { FaLocationArrow, FaTimes } from 'react-icons/fa'
 
@@ -26,7 +18,8 @@ function App() {
       alignItems='center'
       bgColor='blue.200'
       bgImage='https://images.unsplash.com/photo-1647117181799-0ac3e50a548a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80'
-      bgPos='bottom'
+      bgPos='center'
+      bgSize='cover'
       h='100vh'
       w='100vw'
     >
