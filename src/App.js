@@ -104,14 +104,21 @@ function App() {
         minW='container.md'
         zIndex='1'
       >
-        <HStack spacing={4} justifyContent='space-between'>
-          <Autocomplete>
-            <Input type='text' placeholder='Origin' ref={originRef} />
-          </Autocomplete>
-
-          <Autocomplete>
-            <Input type='text' placeholder='Destination' ref={destiantionRef} />
-          </Autocomplete>
+        <HStack spacing={2} justifyContent='space-between'>
+          <Box flexGrow={1}>
+            <Autocomplete>
+              <Input type='text' placeholder='Origin' ref={originRef} />
+            </Autocomplete>
+          </Box>
+          <Box flexGrow={1}>
+            <Autocomplete>
+              <Input
+                type='text'
+                placeholder='Destination'
+                ref={destiantionRef}
+              />
+            </Autocomplete>
+          </Box>
 
           <ButtonGroup>
             <Button colorScheme='pink' type='submit' onClick={calculateRoute}>
