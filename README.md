@@ -1,4 +1,4 @@
-### Getting Started with Google Maps API with Places autocomplete and Directions service and renderer.
+# Getting Started with Google Maps API with Places autocomplete and Directions service and renderer.
 
 Create an API in the google developers console [https://console.developers.google.com](https://console.developers.google.com), make sure to enable billing for the google project, otherwise you may get a warning as _development purposes only_.
 
