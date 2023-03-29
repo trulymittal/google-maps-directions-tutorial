@@ -24,7 +24,7 @@ const center = { lat: 48.8584, lng: 2.2945 }
 
 function App() {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: 'AIzaSyA4Ic9OkUaXveJT2sNkL4HSkfGxnjBucOw',
     libraries: ['places'],
   })
 
@@ -38,6 +38,8 @@ function App() {
   /** @type React.MutableRefObject<HTMLInputElement> */
   const destiantionRef = useRef()
 
+  const stopRef = useRef()
+
   if (!isLoaded) {
     return <SkeletonText />
   }
@@ -46,14 +48,26 @@ function App() {
     if (originRef.current.value === '' || destiantionRef.current.value === '') {
       return
     }
+    // Logic for crafting waypoints
+    let waypoints = []
+    if(stopRef.current.value !== '') {
+      waypoints.push({
+        location: stopRef.current.value,
+        stopover: true
+      })
+    }
+    
+
     // eslint-disable-next-line no-undef
     const directionsService = new google.maps.DirectionsService()
     const results = await directionsService.route({
       origin: originRef.current.value,
+      waypoints: waypoints,
       destination: destiantionRef.current.value,
       // eslint-disable-next-line no-undef
       travelMode: google.maps.TravelMode.DRIVING,
     })
+    console.log('results: ', results)
     setDirectionsResponse(results)
     setDistance(results.routes[0].legs[0].distance.text)
     setDuration(results.routes[0].legs[0].duration.text)
@@ -63,6 +77,7 @@ function App() {
     setDirectionsResponse(null)
     setDistance('')
     setDuration('')
+    stopRef.current.value = ''
     originRef.current.value = ''
     destiantionRef.current.value = ''
   }
@@ -91,7 +106,10 @@ function App() {
         >
           <Marker position={center} />
           {directionsResponse && (
-            <DirectionsRenderer directions={directionsResponse} />
+            <DirectionsRenderer options={{
+              directions: directionsResponse,
+              draggable: true
+            }}/>
           )}
         </GoogleMap>
       </Box>
@@ -108,6 +126,15 @@ function App() {
           <Box flexGrow={1}>
             <Autocomplete>
               <Input type='text' placeholder='Origin' ref={originRef} />
+            </Autocomplete>
+          </Box>
+          <Box flexGrow={1}>
+            <Autocomplete>
+              <Input
+                type='text'
+                placeholder='AdditionalStop'
+                ref={stopRef}
+              />
             </Autocomplete>
           </Box>
           <Box flexGrow={1}>
