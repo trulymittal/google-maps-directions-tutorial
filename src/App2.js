@@ -163,10 +163,10 @@ function App() {
               if(e.placeId != null){
                 const data = await getInfoByPlaceID(e.placeId)
                 setInfoWindowContent(<>
-                  <h1>Name: {data.name}</h1>
-                  <h1>Phone Number: {data.formatted_phone_number}</h1>
-                  <h1>Website: <a href={data.website}>{data.website}</a></h1>
-                  <h1>Rating: {data.rating}</h1>
+                  <h2>Name: {data.name}</h2>
+                  <p>Phone Number: {data.formatted_phone_number}</p>
+                  <p>Website: <a href={data.website}>{data.website}</a></p>
+                  <p>Rating: {data.rating}</p>
                   <img src={data.photos[0].getUrl({maxWidth: 400, maxHeight: 400})}></img>
                 </>)
                 setinfoWindowLocation(e.latLng)
