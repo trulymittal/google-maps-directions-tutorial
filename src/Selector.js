@@ -23,6 +23,11 @@ import { Avatar, ListItemAvatar } from '@mui/material';
 import { useRef, useState } from 'react';
 
   function Selector(props) {
+    const clientId = 'bbbd71d9c98a4bc39b1a21675d1b1072';
+    const clientSecret = '61e84bce2a0847e88002488b51a5d990';
+    const redirectUri = 'http://localhost:3000';
+    let accessToken = 'BQBSxsMy2xyIC7v7cM6GHZ5k10BFPbqEW1hh3jNecRg-CbTMssmCMMK-KOwZAWLzJsX0CtffXelhVuAO-5iWEoSB19qwxY32-MSQQ-j6Ke_Z5ZuinIB6'
+
     const [state, setState] = React.useState({
         top: false,
         left: false,
@@ -66,25 +71,6 @@ import { useRef, useState } from 'react';
 
     let selectedStopName = "placeholder stop"
 
-   
-    /*
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
-    const openTripMenu = (event) => {
-      setAnchorEl(event.currentTarget);
-    };
-    const closeTripMenu = () => {
-      setAnchorEl(null);
-    };
-    const addStop = () => {
-      setAnchorEl(null);
-    };
-    const rateTrip = () => {
-      setAnchorEl(null);
-    };
-    const deleteTrip = () => {
-      setAnchorEl(null);
-    };*/
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const handleClick = (event) => {
@@ -93,7 +79,156 @@ import { useRef, useState } from 'react';
     const handleClose = () => {
       setAnchorEl(null);
     };
+    
+    function generateRandomString(length) {
+      let text = '';
+      let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    
+      for (let i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
+    }
 
+    async function generateCodeChallenge(codeVerifier) {
+      function base64encode(string) {
+        return btoa(String.fromCharCode.apply(null, new Uint8Array(string)))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+      }
+    
+      const encoder = new TextEncoder();
+      const data = encoder.encode(codeVerifier);
+      const digest = await window.crypto.subtle.digest('SHA-256', data);
+    
+      return base64encode(digest);
+    }
+
+    function getUserAuth() {
+      let codeVerifier = generateRandomString(128);
+
+      generateCodeChallenge(codeVerifier).then(codeChallenge => {
+        let state = generateRandomString(16);
+        let scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
+
+        localStorage.setItem('code-verifier', codeVerifier);
+
+        let args = new URLSearchParams({
+          response_type: 'code',
+          client_id: clientId,
+          scope: scope,
+          redirect_uri: redirectUri,
+          state: state,
+          code_challenge_method: 'S256',
+          code_challenge: codeChallenge
+        });
+
+        window.location = 'https://accounts.spotify.com/authorize?' + args;
+      });
+
+      //const urlParams = new URLSearchParams(window.location.search)
+      //console.log(code)
+      //localStorage.setItem('code', code);
+      //localStorage.setItem('urlParamsAuth', urlParams);
+    }
+
+    function getAuthCode() {
+      let codeVerifier = localStorage.getItem('code-verifier');
+      const urlParams = new URLSearchParams(window.location.search);
+
+      let code = urlParams.get('code');
+      console.log(code)
+
+      let body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+        code_verifier: codeVerifier
+      });
+
+
+      const response = fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('access-token', data.access_token);
+          console.log(data.access_token)
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
+    }
+
+    function getUserProfile() {
+      let url = "https://api.spotify.com/v1/me"
+
+      const response = fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token')
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('user-data', data);
+          localStorage.setItem('user-id', data.id)
+          console.log(data)
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function createPlaylist() {
+      console.log(localStorage.getItem('access-token'))
+
+      let url = "https://api.spotify.com/v1/users/"+localStorage.getItem('user-id')+"/playlists"
+
+      let body = new URLSearchParams({
+        name: "New Playlist",
+        description: "New playlist description",
+        public: false
+      });
+
+      const response = fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token')
+        },
+        body: body
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('access-token', data.access_token);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+  }
 
     return (
       <div>
@@ -168,6 +303,45 @@ import { useRef, useState } from 'react';
                   <MenuItem onClick={handleClose}>Add to Trip</MenuItem>
                   <MenuItem onClick={handleClose}>Remove from Saved</MenuItem>
                 </Menu>
+              </Drawer>
+            </React.Fragment>
+          ))}
+        </div>
+        <div>
+          {['Playlists'].map((anchor) => (
+            <React.Fragment key={anchor}>
+              <Button onClick={toggleDrawer(anchor, true)}>{anchor}</Button>
+              <Drawer
+                anchor='left'
+                open={state[anchor]}
+                onClose={toggleDrawer(anchor, false)}
+              >
+                {list(anchor)}
+                <h2>Playlists</h2>
+                <Button
+                  id="basic-button"
+                  onClick={getUserAuth}
+                >
+                  Authorize
+                </Button>
+                <Button
+                  id="basic-button"
+                  onClick={getAuthCode}
+                >
+                  Update Authorization
+                </Button>
+                <Button
+                  id="basic-button"
+                  onClick={getUserProfile}
+                >
+                  Get Profile Info
+                </Button>
+                <Button
+                  id="basic-button"
+                  onClick={createPlaylist}
+                >
+                  Create New Playlist
+                </Button>
               </Drawer>
             </React.Fragment>
           ))}
