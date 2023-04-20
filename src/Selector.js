@@ -138,7 +138,7 @@ import { useRef, useState } from 'react';
       const urlParams = new URLSearchParams(window.location.search);
 
       let code = urlParams.get('code');
-      console.log(code)
+      //console.log(code)
 
       let body = new URLSearchParams({
         grant_type: 'authorization_code',
@@ -165,7 +165,7 @@ import { useRef, useState } from 'react';
         })
         .then(data => {
           localStorage.setItem('access-token', data.access_token);
-          console.log(data.access_token)
+          console.log(data.access_token);
         })
         .catch(error => {
           console.error('Error:', error);
@@ -190,8 +190,8 @@ import { useRef, useState } from 'react';
         })
         .then(data => {
           localStorage.setItem('user-data', data);
-          localStorage.setItem('user-id', data.id)
-          console.log(data)
+          localStorage.setItem('user-id', data.id);
+          console.log(data);
         })
         .catch(error => {
           console.error('Error:', error);
@@ -199,20 +199,22 @@ import { useRef, useState } from 'react';
     }
 
     function createPlaylist() {
-      console.log(localStorage.getItem('access-token'))
+      //console.log(localStorage.getItem('access-token'))
 
       let url = "https://api.spotify.com/v1/users/"+localStorage.getItem('user-id')+"/playlists"
 
-      let body = new URLSearchParams({
-        name: "New Playlist",
-        description: "New playlist description",
+      let body = JSON.stringify({
+        name: "Road Trip Playlist",
+        description: "Created by Road Trip Application",
+        collaborative: false,
         public: false
       });
 
       const response = fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer '+localStorage.getItem('access-token')
+          'Authorization': 'Bearer '+localStorage.getItem('access-token'),
+          'Content-type': 'application/json'
         },
         body: body
       })
@@ -223,12 +225,46 @@ import { useRef, useState } from 'react';
           return response.json();
         })
         .then(data => {
-          localStorage.setItem('access-token', data.access_token);
+          localStorage.setItem('playlist-id', data.id);
+          console.log(data);
         })
         .catch(error => {
           console.error('Error:', error);
         });
-  }
+    }
+
+    function addSong() {
+      let url = "https://api.spotify.com/v1/playlists/"+localStorage.getItem('playlist-id')+"/tracks"
+
+      let uriStr = "spotify:track:"+document.getElementById('song-input').value
+      let uriArr = uriStr.split(' ')
+
+      let body = JSON.stringify({
+        position: 0,
+        uris: uriArr
+      });
+
+      const response = fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token'),
+          'Content-type': 'application/json'
+        },
+        body: body
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
 
     return (
       <div>
@@ -341,6 +377,18 @@ import { useRef, useState } from 'react';
                   onClick={createPlaylist}
                 >
                   Create New Playlist
+                </Button>
+                <TextField 
+                  id="song-input" 
+                  label="Outlined" 
+                  variant="outlined"
+                  defaultValue="5gB2IrxOCX2j9bMnHKP38i"
+                />
+                <Button
+                  id="basic-button"
+                  onClick={addSong}
+                >
+                  Add Song  
                 </Button>
               </Drawer>
             </React.Fragment>
