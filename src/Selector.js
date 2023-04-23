@@ -26,7 +26,6 @@ import { useRef, useState } from 'react';
     const clientId = 'bbbd71d9c98a4bc39b1a21675d1b1072';
     const clientSecret = '61e84bce2a0847e88002488b51a5d990';
     const redirectUri = 'http://localhost:3000';
-    let accessToken = 'BQBSxsMy2xyIC7v7cM6GHZ5k10BFPbqEW1hh3jNecRg-CbTMssmCMMK-KOwZAWLzJsX0CtffXelhVuAO-5iWEoSB19qwxY32-MSQQ-j6Ke_Z5ZuinIB6'
 
     const [state, setState] = React.useState({
         top: false,
@@ -266,6 +265,105 @@ import { useRef, useState } from 'react';
         });
     }
 
+    function addSong(uriStr) {
+      let url = "https://api.spotify.com/v1/playlists/"+localStorage.getItem('playlist-id')+"/tracks"
+
+      let uriArr = uriStr.split(' ');
+      uriArr.pop();
+
+      let body = JSON.stringify({
+        position: 0,
+        uris: uriArr
+      });
+
+      const response = fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token'),
+          'Content-type': 'application/json'
+        },
+        body: body
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function createPlaylistByGenre() {
+      let url = "https://api.spotify.com/v1/users/"+localStorage.getItem('user-id')+"/playlists"
+
+      let body = JSON.stringify({
+        name: "Road Trip Playlist",
+        description: "Created by Road Trip Application, "+document.getElementById('genre-input').value+ " genre",
+        collaborative: false,
+        public: false
+      });
+
+      const response = fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token'),
+          'Content-type': 'application/json'
+        },
+        body: body
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('playlist-id', data.id);
+          console.log(data);
+          searchByGenre();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function searchByGenre() {
+      let offset = Math.floor(Math.random() * 5);
+      console.log(offset)
+      let url = "https://api.spotify.com/v1/search?q=genre:"+document.getElementById('genre-input').value+"&type=track&limit="+document.getElementById('length-input').value+"&offset="+offset;
+
+      const response = fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer '+localStorage.getItem('access-token'),
+        },
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log(data.tracks.items);
+          let uriStr = "";
+          for(const element of data.tracks.items) {
+            let idStr = "spotify:track:"+element.id+" ";
+            uriStr += idStr;
+          }
+          console.log(uriStr);
+          addSong(uriStr);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
     return (
       <div>
         <div>
@@ -376,11 +474,11 @@ import { useRef, useState } from 'react';
                   id="basic-button"
                   onClick={createPlaylist}
                 >
-                  Create New Playlist
+                  Create Empty Playlist
                 </Button>
                 <TextField 
                   id="song-input" 
-                  label="Outlined" 
+                  label="Spotify Song ID" 
                   variant="outlined"
                   defaultValue="5gB2IrxOCX2j9bMnHKP38i"
                 />
@@ -389,6 +487,25 @@ import { useRef, useState } from 'react';
                   onClick={addSong}
                 >
                   Add Song  
+                </Button>
+                <TextField 
+                  id="genre-input" 
+                  label="Genre" 
+                  variant="outlined"
+                  defaultValue="country"
+                />
+                <br/>
+                <TextField 
+                  id="length-input" 
+                  label="Length" 
+                  variant="outlined"
+                  defaultValue="10"
+                />
+                <Button
+                  id="basic-button"
+                  onClick={createPlaylistByGenre}
+                >
+                  Generate Playlist  
                 </Button>
               </Drawer>
             </React.Fragment>
