@@ -5,6 +5,7 @@ import {
   Checkbox,
   Flex,
   HStack,
+  VStack,
   IconButton,
   Input,
   SkeletonText,
@@ -24,6 +25,8 @@ import { useRef, useState } from "react";
 const center = { lat: 48.8584, lng: 2.2945 };
 
 function App() {
+  //const [markers, setMarker] = useState([])
+
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
@@ -35,6 +38,10 @@ function App() {
   const [duration, setDuration] = useState("");
   const [waypoints, setWaypoints] = useState([]);
   const [optimize, setOptimize] = useState(true);
+  const [markers, setMarkers] = useState([
+    { lat: 48.8584, lng: 2.2945 },
+    { lat: 48.8595, lng: 2.2945 },
+  ]);
 
   /** @type React.MutableRefObject<HTMLInputElement> */
   const originRef = useRef();
@@ -63,8 +70,8 @@ function App() {
       travelMode: google.maps.TravelMode.DRIVING,
     });
     setDirectionsResponse(results);
-    setDistance(results.routes[0].legs[0].distance.text); // sum all legs
-    setDuration(results.routes[0].legs[0].duration.text); // sum all legs
+    setDistance(results.routes[0].legs[0].distance.text); // TODO: sum all legs
+    setDuration(results.routes[0].legs[0].duration.text); // TODO: sum all legs
   }
 
   function clearRoute() {
@@ -73,6 +80,12 @@ function App() {
     setDuration("");
     originRef.current.value = "";
     destiantionRef.current.value = "";
+  }
+
+  function handleMarkerClick(index) {
+    return () => {
+      console.log(index);
+    };
   }
 
   return (
@@ -97,6 +110,15 @@ function App() {
           }}
           onLoad={(map) => setMap(map)}
         >
+          {markers.map((marker, index) => (
+            <Marker
+              position={{
+                lat: marker.lat,
+                lng: marker.lng,
+              }}
+              onClick={handleMarkerClick(index)}
+            />
+          ))}
           <Marker position={center} />
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
@@ -104,15 +126,18 @@ function App() {
         </GoogleMap>
       </Box>
       <Box
+        position="absolute"
+        left={0}
+        top={0}
+        h="100%"
         p={4}
         borderRadius="lg"
-        m={4}
         bgColor="white"
         shadow="base"
-        minW="container.md"
+        minW={400}
         zIndex="1"
       >
-        <HStack spacing={2} justifyContent="space-between">
+        <VStack spacing={2} justifyContent="space-between">
           <Box flexGrow={1}>
             <Autocomplete>
               <Input type="text" placeholder="Origin" ref={originRef} />
@@ -141,13 +166,13 @@ function App() {
               onClick={clearRoute}
             />
           </ButtonGroup>
-        </HStack>
-        <HStack spacing={4} mt={4} justifyContent="space-between">
+        </VStack>
+        <VStack spacing={4} mt={4} justifyContent="space-between">
           <Checkbox onChange={(e) => setOptimize(e.target.checked)}>
             Optimize Route
           </Checkbox>
-          <Text>Total Distance: {distance} </Text>
-          <Text>Total Duration: {duration} </Text>
+          <Text>Distance: {distance} </Text>
+          <Text>Duration: {duration} </Text>
           <IconButton
             aria-label="center back"
             icon={<FaLocationArrow />}
@@ -157,7 +182,7 @@ function App() {
               map.setZoom(15);
             }}
           />
-        </HStack>
+        </VStack>
       </Box>
     </Flex>
   );
