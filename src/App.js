@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Checkbox,
   Flex,
   HStack,
   VStack,
@@ -35,7 +36,8 @@ function App() {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
-
+  const [waypoints, setWaypoints] = useState([]);
+  const [optimize, setOptimize] = useState(true);
   const [markers, setMarkers] = useState([
     { lat: 48.8584, lng: 2.2945 },
     { lat: 48.8595, lng: 2.2945 },
@@ -59,12 +61,17 @@ function App() {
     const results = await directionsService.route({
       origin: originRef.current.value,
       destination: destiantionRef.current.value,
+      waypoints: waypoints.map((waypoint) => ({
+        location: waypoint,
+        stopover: true,
+      })),
+      optimizeWaypoints: optimize,
       // eslint-disable-next-line no-undef
       travelMode: google.maps.TravelMode.DRIVING,
     });
     setDirectionsResponse(results);
-    setDistance(results.routes[0].legs[0].distance.text);
-    setDuration(results.routes[0].legs[0].duration.text);
+    setDistance(results.routes[0].legs[0].distance.text); // TODO: sum all legs
+    setDuration(results.routes[0].legs[0].duration.text); // TODO: sum all legs
   }
 
   function clearRoute() {
@@ -145,6 +152,9 @@ function App() {
               />
             </Autocomplete>
           </Box>
+          <Box flexGrow={1}>
+            <Input type="text" placeholder="Adjective" />
+          </Box>
 
           <ButtonGroup>
             <Button colorScheme="pink" type="submit" onClick={calculateRoute}>
@@ -158,6 +168,9 @@ function App() {
           </ButtonGroup>
         </VStack>
         <VStack spacing={4} mt={4} justifyContent="space-between">
+          <Checkbox onChange={(e) => setOptimize(e.target.checked)}>
+            Optimize Route
+          </Checkbox>
           <Text>Distance: {distance} </Text>
           <Text>Duration: {duration} </Text>
           <IconButton
