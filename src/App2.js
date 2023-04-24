@@ -147,7 +147,7 @@ function App() {
           id="map"
           center={center}
           zoom={15}
-          mapContainerStyle={{ width: '100%', height: '100%' }}
+          mapContainerStyle={{ width: '80%', height: '80%' }}
           options={{
             zoomControl: true,
             streetViewControl: true,
