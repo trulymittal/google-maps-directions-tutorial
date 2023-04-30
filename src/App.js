@@ -4,7 +4,6 @@ import {
   ButtonGroup,
   Checkbox,
   Flex,
-  HStack,
   VStack,
   IconButton,
   Input,
@@ -46,22 +45,72 @@ function App() {
   /** @type React.MutableRefObject<HTMLInputElement> */
   const originRef = useRef();
   /** @type React.MutableRefObject<HTMLInputElement> */
-  const destiantionRef = useRef();
+  const destinationRef = useRef();
+  /** @type React.MutableRefObject<HTMLInputElement> */
+  const adjectiveRef = useRef();
 
   if (!isLoaded) {
     return <SkeletonText />;
   }
 
+  async function fetchData(url, queryParams) {
+    try {
+      const urlObject = new URL(url);
+      urlObject.search = new URLSearchParams(queryParams).toString();
+      const response = await fetch(urlObject.toString());
+
+      if (!response.ok) {
+        throw new Error(`An error occurred: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Data:", data);
+
+      const newWaypoints = data.results.map((result) => result.name);
+      setWaypoints(newWaypoints);
+      return newWaypoints;
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
   async function calculateRoute() {
-    if (originRef.current.value === "" || destiantionRef.current.value === "") {
+    if (
+      originRef.current.value === "" ||
+      destinationRef.current.value === "" ||
+      adjectiveRef.current.value === ""
+    ) {
       return;
     }
+
+    // // eslint-disable-next-line no-undef
+    // const autocomplete = new google.maps.places.Autocomplete(
+    //   originRef.current.value,
+    //   {
+    //     fields: ["place_id"],
+    //   }
+    // );
+    // console.log(autocomplete.getPlace());
+
+    const url = "https://detour-ai-mit.uk.r.appspot.com";
+    const queryParams = {
+      key: "beaver",
+      origin: "ChIJh2oa9apw44kRPCAIs6WO4NA",
+      destination: "ChIJLw8wo4Vw44kRWkWR0c03LH4",
+      keyword: adjectiveRef.current.value,
+      modelWeight: 20,
+      distanceWeight: 0,
+      popularityWeight: 10,
+      targetCount: 3,
+    };
+
+    const newWaypoints = await fetchData(url, queryParams);
     // eslint-disable-next-line no-undef
     const directionsService = new google.maps.DirectionsService();
     const results = await directionsService.route({
       origin: originRef.current.value,
-      destination: destiantionRef.current.value,
-      waypoints: waypoints.map((waypoint) => ({
+      destination: destinationRef.current.value,
+      waypoints: newWaypoints.map((waypoint) => ({
         location: waypoint,
         stopover: true,
       })),
@@ -78,8 +127,9 @@ function App() {
     setDirectionsResponse(null);
     setDistance("");
     setDuration("");
+    setWaypoints([]);
     originRef.current.value = "";
-    destiantionRef.current.value = "";
+    destinationRef.current.value = "";
   }
 
   function handleMarkerClick(index) {
@@ -110,15 +160,6 @@ function App() {
           }}
           onLoad={(map) => setMap(map)}
         >
-          {markers.map((marker, index) => (
-            <Marker
-              position={{
-                lat: marker.lat,
-                lng: marker.lng,
-              }}
-              onClick={handleMarkerClick(index)}
-            />
-          ))}
           <Marker position={center} />
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
@@ -134,7 +175,7 @@ function App() {
         borderRadius="lg"
         bgColor="white"
         shadow="base"
-        minW={400}
+        minW={200}
         zIndex="1"
       >
         <VStack spacing={2} justifyContent="space-between">
@@ -148,12 +189,12 @@ function App() {
               <Input
                 type="text"
                 placeholder="Destination"
-                ref={destiantionRef}
+                ref={destinationRef}
               />
             </Autocomplete>
           </Box>
           <Box flexGrow={1}>
-            <Input type="text" placeholder="Adjective" />
+            <Input type="text" placeholder="Adjective" ref={adjectiveRef} />
           </Box>
 
           <ButtonGroup>
@@ -173,7 +214,7 @@ function App() {
           </Checkbox>
           <Text>Distance: {distance} </Text>
           <Text>Duration: {duration} </Text>
-          <IconButton
+          {/* <IconButton
             aria-label="center back"
             icon={<FaLocationArrow />}
             isRound
@@ -181,7 +222,7 @@ function App() {
               map.panTo(center);
               map.setZoom(15);
             }}
-          />
+          /> */}
         </VStack>
       </Box>
     </Flex>
